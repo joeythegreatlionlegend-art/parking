@@ -4,6 +4,9 @@ import { config as dotenvConfig } from 'dotenv';
 import fs from 'fs';
 
 const app = express();
+import deviceRouter from './routers/device.router.js';
+app.use(express.json());
+
 
 const PORT = process.env.PORT || 5000;
 
@@ -14,7 +17,7 @@ const secretPath =
 
 dotenvConfig({ path: secretPath});
 
-
+app.use ("/device", deviceRouter);
 app.get("/", (req, res) =>{
     res.json({message: "Server is working!"})
 });
