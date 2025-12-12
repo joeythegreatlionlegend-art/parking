@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React,{ useState, useEffect } from 'react';
 import { View, Text, ScrollView, SafeAreaView, StatusBar } from 'react-native';
 import { Activity, Car, Clock } from 'lucide-react-native';
+import axiosInstance from '../axiosConfig.js';
+
+
 
 interface ParkingSlot {
   id: number;
@@ -125,6 +128,9 @@ export default function App() {
   const occupiedCount = slots.filter(slot => slot.occupied).length;
   const availableCount = slots.length - occupiedCount;
 
+  const [data, setData] = useState();
+  
+  
   return (
     <SafeAreaView className="flex-1 bg-slate-900">
       <StatusBar barStyle="light-content" backgroundColor="#0f172a" />

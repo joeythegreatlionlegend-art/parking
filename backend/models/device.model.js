@@ -12,8 +12,31 @@ const DeviceSchema = new mongoose.Schema({
     lastupdate:{
         type: Number,
         required: true,
+        default: 0},
+
+
+    mohtionsensor:{
+        type: Number,
+        required: true,
         default: 0
     },
+
+    lasersensor:{
+        type: Number,
+        required: true,
+        default: 0
+        
+    },
+
+    pirsensor:{
+        type: Number,
+        required: true,
+        default: 0
+    
+    }
+
+       
+    
 });
 
  const Device = mongoose.model('Device', DeviceSchema);
