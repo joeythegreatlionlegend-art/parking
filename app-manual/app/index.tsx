@@ -1,185 +1,233 @@
-import React,{ useState, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, StatusBar } from 'react-native';
-import { Activity, Car, Clock } from 'lucide-react-native';
-import axiosInstance from '../axiosConfig.js';
-
-
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, SafeAreaView } from 'react-native';
+import { Car, Activity, Clock } from 'lucide-react-native';
+import axiosInstance from './axiosInstance';
 
 interface ParkingSlot {
   id: number;
   name: string;
   occupied: boolean;
   pirValue: number;
-  lastUpdated: Date;
+  lastUpdate: Date;
 }
 
-// ParkingSlotCard Component
-function ParkingSlotCard({ slot }: { slot: ParkingSlot }) {
-  const getTimeAgo = (date: Date) => {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    if (seconds < 10) return 'Just now';
-    return `${seconds}s ago`;
-  };
-
-  return (
-    <View
-      className={`rounded-xl p-4 border-2 ${
-        slot.occupied
-          ? 'bg-red-950 border-red-800'
-          : 'bg-green-950 border-green-800'
-      }`}
-    >
-      <View className="flex-row items-start justify-between mb-3">
-        <View className="flex-row items-center gap-3">
-          <View
-            className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-              slot.occupied ? 'bg-red-900' : 'bg-green-900'
-            }`}
-          >
-            <Car
-              size={24}
-              color={slot.occupied ? '#fca5a5' : '#86efac'}
-            />
-          </View>
-          <View>
-            <Text className="text-white text-lg font-semibold">{slot.name}</Text>
-            <Text
-              className={`text-sm ${
-                slot.occupied ? 'text-red-300' : 'text-green-300'
-              }`}
-            >
-              {slot.occupied ? 'Occupied' : 'Available'}
-            </Text>
-          </View>
-        </View>
-
-        <View
-          className={`px-3 py-1 rounded-full ${
-            slot.occupied
-              ? 'bg-red-900'
-              : 'bg-green-900'
-          }`}
-        >
-          <Text
-            className={`text-sm font-semibold ${
-              slot.occupied ? 'text-red-200' : 'text-green-200'
-            }`}
-          >
-            {slot.occupied ? 'BUSY' : 'FREE'}
-          </Text>
-        </View>
-      </View>
-
-      {/* PIR Sensor Reading */}
-      <View className="bg-slate-900 rounded-lg p-3">
-        <View className="flex-row items-center justify-between mb-2">
-          <View className="flex-row items-center gap-2">
-            <Activity size={16} color="#60a5fa" />
-            <Text className="text-slate-400 text-sm">PIR Sensor</Text>
-          </View>
-          <Text className="text-white font-semibold">{slot.pirValue}</Text>
-        </View>
-
-        {/* PIR Value Bar */}
-        <View className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mb-2">
-          <View
-            className={`h-full ${
-              slot.occupied ? 'bg-red-500' : 'bg-green-500'
-            }`}
-            style={{ width: `${Math.min((slot.pirValue / 1000) * 100, 100)}%` }}
-          />
-        </View>
-
-        <View className="flex-row items-center gap-1">
-          <Clock size={12} color="#64748b" />
-          <Text className="text-xs text-slate-500">{getTimeAgo(slot.lastUpdated)}</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-// Main App Component
 export default function App() {
-  const [slots, setSlots] = useState<ParkingSlot[]>([
-    { id: 1, name: 'Slot A1', occupied: true, pirValue: 892, lastUpdated: new Date() },
-    { id: 2, name: 'Slot A2', occupied: false, pirValue: 45, lastUpdated: new Date() },
-    { id: 3, name: 'Slot A3', occupied: true, pirValue: 867, lastUpdated: new Date() },
-    { id: 4, name: 'Slot A4', occupied: false, pirValue: 32, lastUpdated: new Date() },
+  const [data, setData] = useState({});
+  const [parkingSlots, setParkingSlots] = useState<ParkingSlot[]>([
+    {
+      id: 1,
+      name: 'Slot A1',
+      occupied: true,
+      pirValue: 850,
+      lastUpdate: new Date(),
+    },
+    {
+      id: 2,
+      name: 'Slot A2',
+      occupied: false,
+      pirValue: 45,
+      lastUpdate: new Date(),
+    },
+    {
+      id: 3,
+      name: 'Slot B1',
+      occupied: true,
+      pirValue: 920,
+      lastUpdate: new Date(),
+    },
+    {
+      id: 4,
+      name: 'Slot B2',
+      occupied: false,
+      pirValue: 78,
+      lastUpdate: new Date(),
+    },
   ]);
 
-  // Simulate real-time PIR sensor updates
+  useEffect(()=>{
+  const func=async()=>{
+ try{
+  const response = await axiosInstance.get("/device/get");
+  if (!response.data.success){
+    console.log(JSON.stringify(response.data.message));
+    setData([]);
+     }else{
+      setData(response.data.data[0]);
+      console.log(JSON.stringify(response.data)); 
+  }
+ }catch(error){
+   console.error("Data retrieval error:", error.message); 
+ }
+}
+
+  func();
+},[]);
+  /*
+  // Update sensor readings every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setSlots(prevSlots =>
-        prevSlots.map(slot => ({
-          ...slot,
-          pirValue: slot.occupied
-            ? Math.floor(Math.random() * 200) + 800 // Occupied: 800-1000
-            : Math.floor(Math.random() * 100) + 20,  // Vacant: 20-120
-          lastUpdated: new Date(),
-        }))
+      setParkingSlots((prevSlots) =>
+        prevSlots.map((slot) => {
+          // Randomly change occupancy status (20% chance)
+          const shouldChangeStatus = Math.random() < 0.2;
+          const newOccupied = shouldChangeStatus ? !slot.occupied : slot.occupied;
+
+          // Generate realistic PIR values based on occupancy
+          let newPirValue: number;
+          if (newOccupied) {
+            // Occupied: 800-1000
+            newPirValue = Math.floor(Math.random() * 201) + 800;
+          } else {
+            // Vacant: 20-120
+            newPirValue = Math.floor(Math.random() * 101) + 20;
+          }
+
+          return {
+            ...slot,
+            occupied: newOccupied,
+            pirValue: newPirValue,
+            lastUpdate: new Date(),
+          };
+        })
       );
     }, 3000);
 
     return () => clearInterval(interval);
   }, []);
+  */
 
-  const occupiedCount = slots.filter(slot => slot.occupied).length;
-  const availableCount = slots.length - occupiedCount;
+  const occupiedCount = parkingSlots.filter((slot) => slot.occupied).length;
+  const vacantCount = parkingSlots.length - occupiedCount;
 
-  const [data, setData] = useState();
-  
-  
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
-      <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
-      <ScrollView className="flex-1 bg-slate-900">
-        {/* Header */}
-        <View className="bg-slate-800 border-b border-slate-700 px-4 py-4">
-          <View className="flex-row items-center gap-3 mb-4">
-            <View className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
-              <Activity size={24} color="white" />
+    <SafeAreaView className="flex-1 bg-gray-900">
+      <ScrollView className="flex-1">
+        <View className="p-6">
+          {/* Header */}
+          <View className="mb-6">
+            <Text className="text-3xl font-bold text-white mb-2">
+              Smart Parking
+            </Text>
+            <Text className="text-gray-400">Real-time Monitoring System</Text>
+          </View>
+
+          {/* Summary Cards */}
+          <View className="flex-row gap-3 mb-6">
+            <View className="flex-1 bg-emerald-900/30 border border-emerald-700/50 rounded-2xl p-4">
+              <Text className="text-emerald-400 text-sm mb-1">Available</Text>
+              <Text className="text-3xl font-bold text-emerald-300">
+                {vacantCount}
+              </Text>
             </View>
-            <View>
-              <Text className="text-white text-xl font-bold">Smart Parking</Text>
-              <Text className="text-slate-400 text-sm">Real-time Monitoring</Text>
+            <View className="flex-1 bg-red-900/30 border border-red-700/50 rounded-2xl p-4">
+              <Text className="text-red-400 text-sm mb-1">Occupied</Text>
+              <Text className="text-3xl font-bold text-red-300">
+                {occupiedCount}
+              </Text>
             </View>
           </View>
 
-          {/* Stats */}
-          <View className="flex-row gap-3">
-            <View className="flex-1 bg-slate-900 rounded-lg p-3 border border-slate-700">
-              <Text className="text-slate-400 text-sm">Available</Text>
-              <Text className="text-green-400 text-2xl font-bold">{availableCount}</Text>
-            </View>
-            <View className="flex-1 bg-slate-900 rounded-lg p-3 border border-slate-700">
-              <Text className="text-slate-400 text-sm">Occupied</Text>
-              <Text className="text-red-400 text-2xl font-bold">{occupiedCount}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Parking Slots */}
-        <View className="px-4 py-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-white text-lg font-semibold">Parking Slots</Text>
-            <View className="flex-row items-center gap-2">
-              <View className="w-2 h-2 bg-green-500 rounded-full" />
-              <Text className="text-slate-400 text-sm">Live</Text>
-            </View>
-          </View>
-
+          {/* Parking Slots */}
           <View className="gap-4">
-            {slots.map(slot => (
-              <ParkingSlotCard key={slot.id} slot={slot} />
+            {parkingSlots.map((slot) => (
+              <View
+                key={slot.id}
+                className={`rounded-2xl p-5 border-2 ${
+                  slot.occupied
+                    ? 'bg-red-950/40 border-red-800/60'
+                    : 'bg-emerald-950/40 border-emerald-800/60'
+                }`}
+              >
+                {/* Slot Header */}
+                <View className="flex-row items-center justify-between mb-4">
+                  <View className="flex-row items-center gap-3">
+                    <View
+                      className={`p-2 rounded-xl ${
+                        slot.occupied ? 'bg-red-900/50' : 'bg-emerald-900/50'
+                      }`}
+                    >
+                      <Car
+                        size={24}
+                        color={slot.occupied ? '#fca5a5' : '#6ee7b7'}
+                      />
+                    </View>
+                    <View>
+                      <Text className="text-white text-xl font-semibold">
+                        {slot.name}
+                      </Text>
+                      <View className="flex-row items-center gap-1 mt-1">
+                        <View
+                          className={`w-2 h-2 rounded-full ${
+                            slot.occupied ? 'bg-red-400' : 'bg-emerald-400'
+                          }`}
+                        />
+                        <Text
+                          className={`text-sm ${
+                            slot.occupied ? 'text-red-400' : 'text-emerald-400'
+                          }`}
+                        >
+                          {slot.occupied ? 'Occupied' : 'Vacant'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                {/* PIR Sensor Reading */}
+                <View className="mb-4">
+                  <View className="flex-row items-center justify-between mb-2">
+                    <View className="flex-row items-center gap-2">
+                      <Activity
+                        size={16}
+                        color={slot.occupied ? '#fca5a5' : '#6ee7b7'}
+                      />
+                      <Text className="text-gray-400 text-sm">
+                        PIR Sensor Reading
+                      </Text>
+                    </View>
+                    <Text
+                      className={`text-lg font-bold ${
+                        slot.occupied ? 'text-red-300' : 'text-emerald-300'
+                      }`}
+                    >
+                      {slot.pirValue}
+                    </Text>
+                  </View>
+
+                  {/* Progress Bar */}
+                  <View className="bg-gray-800 rounded-full h-3 overflow-hidden">
+                    <View
+                      className={`h-full rounded-full ${
+                        slot.occupied ? 'bg-red-500' : 'bg-emerald-500'
+                      }`}
+                      style={{ width: `${(slot.pirValue / 1000) * 100}%` }}
+                    />
+                  </View>
+                </View>
+
+                {/* Timestamp */}
+                <View className="flex-row items-center gap-2 pt-3 border-t border-gray-700/50">
+                  <Clock size={14} color="#9ca3af" />
+                  <Text className="text-gray-400 text-xs">
+                    Last updated: {formatTime(slot.lastUpdate)}
+                  </Text>
+                </View>
+              </View>
             ))}
           </View>
 
           {/* Footer Info */}
-          <View className="mt-6 bg-slate-900 border border-slate-700 rounded-lg p-4">
-            <Text className="text-slate-400 text-sm text-center">
-              PIR sensors update every 3 seconds
+          <View className="mt-6 p-4 bg-gray-800/50 rounded-xl border border-gray-700/50">
+            <Text className="text-gray-400 text-xs text-center">
+              System updates every 3 seconds • Real-time monitoring active
             </Text>
           </View>
         </View>
