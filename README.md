@@ -1,7 +1,7 @@
-# Rain2Cane
+# An IoT-based Smart Parking Monitoring and Management System
 
-Project Rain2Cane: An IoT-based Smart Rainwater Collection and Irrigation Monitoring Platform for efficient and sustainable Sugar Cane Farming with android and web apps integration.
+ParkEase is an IoT-based Smart Parking Monitoring and Management Platform designed to optimize parking space utilization, reduce traffic congestion, and enhance user convenience in urban environments.
 
-*Due to lack of resource and time constraints, we need to revert back on using MERN framework. the native app: either it will be written in React Native or Android java, it depends on how much time we have left to study React Native but if time doesn't permit it, needed to switch to java Android. Maybe I would include a QR code as well for the web app's ease of access.
+The system uses IoT sensors installed in parking slots to detect vehicle presence and transmit real-time occupancy data to a centralized server. This information is made accessible through a mobile application and a web dashboard, allowing users to quickly locate available parking spaces and enabling administrators to monitor parking status efficiently.
 
 ## Arduino Code additional Info
