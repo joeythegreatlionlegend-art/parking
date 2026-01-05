@@ -1,45 +1,42 @@
 import mongoose from 'mongoose';
 
+
 const DeviceSchema = new mongoose.Schema({
     deviceID:{
         type: String,
         required: true
     },
     isOnline:{
-        type:Boolean,
+        type: Boolean,
         default: false
     },
-    lastupdate:{
+    lastUpdate:{
         type: Number,
         required: true,
-        default: 0},
-
-
-    mohtionsensor:{
+        default: 0
+    },
+    owner:{
+        type: mongoose.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    UltraSonicSensor:{
         type: Number,
         required: true,
         default: 0
     },
 
-    lasersensor:{
-        type: Number,
-        required: true,
-        default: 0
-        
+    IrSensor:{
+        type: Boolean,
+        default: false
     },
-
-    pirsensor:{
-        type: Number,
-        required: true,
-        default: 0
-    
-    }
-
-       
+    Camera:{
+        type: "String",
+        default: ""
+    },
     
 });
 
- const Device = mongoose.model('Device', DeviceSchema);
+const Device = mongoose.model('Device', DeviceSchema);
 
- export default Device;
- 
+export default Device;
